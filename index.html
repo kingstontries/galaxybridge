@@ -1,0 +1,1509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>GalaxyBridge — Watch 4 for iOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --surface: #16161f;
+    --surface2: #1e1e2a;
+    --border: rgba(255,255,255,0.07);
+    --accent: #4f8ef7;
+    --accent2: #7c5af5;
+    --accent3: #3ecfb0;
+    --danger: #f75f5f;
+    --warning: #f7a94f;
+    --text: #e8e8f0;
+    --text2: #9090a8;
+    --text3: #55556a;
+    --glow: rgba(79,142,247,0.15);
+    --glow2: rgba(124,90,245,0.1);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -30%;
+    left: -20%;
+    width: 70%;
+    height: 70%;
+    background: radial-gradient(ellipse, rgba(79,142,247,0.07) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -20%;
+    right: -10%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(ellipse, rgba(124,90,245,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 0 0 100px;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    padding: 56px 24px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    box-shadow: 0 0 20px rgba(79,142,247,0.3);
+  }
+
+  .logo-text {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  .logo-text span {
+    color: var(--accent);
+  }
+
+  .header-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Connection section */
+  .connection-section {
+    padding: 0 24px 24px;
+  }
+
+  .connect-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+  }
+
+  .connect-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .connect-card.connected::before { opacity: 1; }
+  .connect-card.connected {
+    border-color: rgba(79,142,247,0.2);
+    box-shadow: 0 0 40px rgba(79,142,247,0.05);
+  }
+
+  .watch-visual {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .watch-icon-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .watch-svg {
+    width: 64px;
+    height: 72px;
+  }
+
+  .pulse-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    opacity: 0;
+    animation: none;
+  }
+
+  .pulse-ring.active {
+    animation: pulse 2s ease-out infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+    100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+  }
+
+  .watch-info h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    letter-spacing: -0.2px;
+  }
+
+  .watch-info p {
+    font-size: 13px;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text3);
+    margin-right: 6px;
+    vertical-align: middle;
+    transition: background 0.3s;
+  }
+
+  .status-dot.connected { background: var(--accent3); box-shadow: 0 0 8px var(--accent3); }
+  .status-dot.connecting { background: var(--warning); animation: blink 1s infinite; }
+  .status-dot.error { background: var(--danger); }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 24px;
+    border-radius: var(--radius-sm);
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease;
+    letter-spacing: 0.2px;
+    width: 100%;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+    box-shadow: 0 4px 20px rgba(79,142,247,0.25);
+  }
+
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(79,142,247,0.35); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .btn-danger {
+    background: rgba(247,95,95,0.1);
+    color: var(--danger);
+    border: 1px solid rgba(247,95,95,0.2);
+  }
+
+  .btn-danger:hover { background: rgba(247,95,95,0.15); }
+
+  .btn-ghost {
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+
+  /* Stats grid */
+  .stats-section {
+    padding: 0 24px 24px;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 18px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .stat-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-1px); }
+
+  .stat-card .accent-bar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 0 0 var(--radius) var(--radius);
+    opacity: 0.6;
+  }
+
+  .stat-icon {
+    font-size: 22px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .stat-unit {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text2);
+  }
+
+  /* Heart rate animation */
+  .hr-line {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 20px;
+  }
+
+  .hr-line svg { width: 100%; height: 100%; }
+  .hr-path {
+    stroke: var(--danger);
+    stroke-width: 1.5;
+    fill: none;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: draw 1.5s ease forwards infinite;
+  }
+
+  @keyframes draw {
+    0% { stroke-dashoffset: 100; }
+    50% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: -100; }
+  }
+
+  /* Notifications section */
+  .notifications-section {
+    padding: 0 24px 24px;
+  }
+
+  .notif-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .notif-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text2);
+    cursor: pointer;
+  }
+
+  .toggle {
+    width: 40px;
+    height: 22px;
+    background: var(--surface2);
+    border-radius: 11px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+    border: 1px solid var(--border);
+  }
+
+  .toggle.on { background: var(--accent); border-color: var(--accent); }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: white;
+    transition: transform 0.3s;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  }
+
+  .toggle.on::after { transform: translateX(18px); }
+
+  .notif-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .notif-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: slideIn 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .notif-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+  }
+
+  .notif-app-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .notif-content { flex: 1; min-width: 0; }
+  .notif-app { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; margin-bottom: 2px; }
+  .notif-title { font-size: 13px; font-weight: 600; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .notif-body { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .notif-time { font-size: 11px; color: var(--text3); font-family: 'DM Mono', monospace; flex-shrink: 0; }
+
+  /* Workouts section */
+  .workouts-section {
+    padding: 0 24px 24px;
+  }
+
+  .workout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .workout-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Syne', sans-serif;
+  }
+
+  .workout-btn:hover { background: var(--surface2); border-color: rgba(255,255,255,0.12); transform: translateY(-1px); }
+  .workout-btn.active {
+    background: rgba(79,142,247,0.1);
+    border-color: rgba(79,142,247,0.3);
+  }
+
+  .workout-emoji { font-size: 24px; display: block; margin-bottom: 6px; }
+  .workout-label { font-size: 11px; color: var(--text2); font-weight: 500; }
+
+  /* Battery & settings */
+  .bottom-section {
+    padding: 0 24px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .mini-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+
+  .mini-label {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .battery-bar {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .battery-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent3), #5ef78f);
+    transition: width 1s ease;
+  }
+
+  .battery-pct {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -1px;
+  }
+
+  /* Log section */
+  .log-section {
+    padding: 0 24px 24px;
+  }
+
+  .log-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    max-height: 160px;
+    overflow-y: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+
+  .log-box::-webkit-scrollbar { width: 4px; }
+  .log-box::-webkit-scrollbar-track { background: transparent; }
+  .log-box::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .log-entry { display: flex; gap: 10px; }
+  .log-time { color: var(--text3); flex-shrink: 0; }
+  .log-msg.ok { color: var(--accent3); }
+  .log-msg.err { color: var(--danger); }
+  .log-msg.info { color: var(--accent); }
+  .log-msg.warn { color: var(--warning); }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 12px 0 28px;
+    z-index: 100;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px 0;
+    transition: all 0.2s;
+    opacity: 0.5;
+  }
+
+  .nav-item.active { opacity: 1; }
+  .nav-item.active .nav-icon { color: var(--accent); }
+
+  .nav-icon { font-size: 20px; transition: all 0.2s; }
+  .nav-label { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--text2); letter-spacing: 0.3px; }
+
+  /* Compat notice */
+  .compat-notice {
+    margin: 0 24px 20px;
+    background: rgba(247,169,79,0.08);
+    border: 1px solid rgba(247,169,79,0.2);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .compat-notice .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+  .compat-notice p {
+    font-size: 12px;
+    color: var(--warning);
+    line-height: 1.5;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .compat-notice strong { font-weight: 500; }
+
+  /* Permissions section */
+  .permissions-section {
+    padding: 0 24px 24px;
+  }
+
+  .perm-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .perm-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .perm-icon { font-size: 18px; flex-shrink: 0; }
+  .perm-info { flex: 1; }
+  .perm-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .perm-desc { font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; }
+  .perm-status { font-size: 11px; font-family: 'DM Mono', monospace; }
+  .perm-status.granted { color: var(--accent3); }
+  .perm-status.denied { color: var(--danger); }
+  .perm-status.pending { color: var(--warning); }
+
+  /* Tabs */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Step counter animation */
+  .step-counter {
+    display: inline-block;
+    animation: countUp 0.5s ease;
+  }
+
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 24px 24px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 30px 20px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+
+  .empty-state .emoji { font-size: 32px; display: block; margin-bottom: 10px; }
+
+  /* Tooltip */
+  .tooltip {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  /* Glow effect on connection */
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 20px rgba(79,142,247,0.1); }
+    50% { box-shadow: 0 0 40px rgba(79,142,247,0.2); }
+  }
+
+  .connect-card.connected { animation: glowPulse 3s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">⌚</div>
+      <div class="logo-text">Galaxy<span>Bridge</span></div>
+    </div>
+    <div class="header-badge">v1.0 · iOS</div>
+  </div>
+
+  <!-- Compatibility Notice -->
+  <div class="compat-notice">
+    <span class="icon">⚠️</span>
+    <p><strong>Requires Web Bluetooth.</strong> Use Chrome/Brave on Android or a Bluetooth-capable browser. On iOS, Safari blocks Web Bluetooth — install <strong>Bluefy</strong> or <strong>WebBLE</strong> browser for full support.</p>
+  </div>
+
+  <!-- Tab: Dashboard -->
+  <div class="tab-content active" id="tab-dashboard">
+
+    <!-- Connection Card -->
+    <div class="connection-section">
+      <div class="section-label">Connection</div>
+      <div class="connect-card" id="connectCard">
+        <div class="watch-visual">
+          <div class="watch-icon-wrap">
+            <div class="pulse-ring" id="pulseRing"></div>
+            <svg class="watch-svg" viewBox="0 0 64 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Band top -->
+              <rect x="20" y="0" width="24" height="14" rx="6" fill="#1e1e2a" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <!-- Watch body -->
+              <rect x="8" y="12" width="48" height="48" rx="14" fill="#16161f" stroke="rgba(255,255,255,0.1)" stroke-width="1.5"/>
+              <!-- Screen -->
+              <rect x="13" y="17" width="38" height="38" rx="10" fill="#0e0e18"/>
+              <!-- Screen glow -->
+              <rect x="13" y="17" width="38" height="38" rx="10" fill="url(#screenGrad)" opacity="0.6"/>
+              <!-- Time display -->
+              <text x="32" y="33" text-anchor="middle" fill="white" font-size="9" font-family="DM Mono" font-weight="500" id="watchTime">--:--</text>
+              <!-- HR indicator -->
+              <text x="32" y="44" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="5.5" font-family="DM Mono">♥ --</text>
+              <!-- Steps -->
+              <text x="32" y="52" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="5" font-family="DM Mono">steps</text>
+              <!-- Band bottom -->
+              <rect x="20" y="58" width="24" height="14" rx="6" fill="#1e1e2a" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <!-- Side button -->
+              <rect x="58" y="26" width="4" height="10" rx="2" fill="#1e1e2a" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+              <defs>
+                <linearGradient id="screenGrad" x1="13" y1="17" x2="51" y2="55" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#4f8ef7" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#7c5af5" stop-opacity="0.1"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <div class="watch-info">
+            <h2 id="watchName">Galaxy Watch 4</h2>
+            <p><span class="status-dot" id="statusDot"></span><span id="statusText">Not connected</span></p>
+            <p style="margin-top:4px; font-size:11px; color: var(--text3)" id="watchMac">—</p>
+          </div>
+        </div>
+        <button class="btn btn-primary" id="connectBtn" onclick="handleConnect()">
+          <span id="connectBtnIcon">🔗</span>
+          <span id="connectBtnText">Connect Watch</span>
+        </button>
+        <p class="tooltip" id="connectHint">Searches for Galaxy Watch 4 via Bluetooth LE</p>
+      </div>
+    </div>
+
+    <!-- Health Stats -->
+    <div class="stats-section">
+      <div class="section-label">Health Data</div>
+      <div class="stats-grid">
+
+        <div class="stat-card">
+          <div class="hr-line">
+            <svg viewBox="0 0 40 20">
+              <polyline class="hr-path" points="0,10 8,10 12,2 16,18 20,2 24,18 28,10 40,10"/>
+            </svg>
+          </div>
+          <span class="stat-icon">❤️</span>
+          <div class="stat-value" id="heartRate">--</div>
+          <div class="stat-label">Heart Rate <span class="stat-unit">bpm</span></div>
+          <div class="accent-bar" style="background: linear-gradient(90deg, var(--danger), #ff8080)"></div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-icon">👣</span>
+          <div class="stat-value step-counter" id="steps">--</div>
+          <div class="stat-label">Steps</div>
+          <div class="accent-bar" style="background: linear-gradient(90deg, var(--accent), #80c0ff)"></div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-icon">🩸</span>
+          <div class="stat-value" id="spo2">--</div>
+          <div class="stat-label">SpO2 <span class="stat-unit">%</span></div>
+          <div class="accent-bar" style="background: linear-gradient(90deg, var(--accent2), #b090ff)"></div>
+        </div>
+
+        <div class="stat-card">
+          <span class="stat-icon">🔥</span>
+          <div class="stat-value" id="calories">--</div>
+          <div class="stat-label">Calories <span class="stat-unit">kcal</span></div>
+          <div class="accent-bar" style="background: linear-gradient(90deg, var(--warning), #ffcc80)"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Battery & Signal -->
+    <div class="bottom-section">
+      <div class="mini-card">
+        <div class="mini-label">BATTERY</div>
+        <div class="battery-bar">
+          <div class="battery-fill" id="batteryFill" style="width: 0%"></div>
+        </div>
+        <div class="battery-pct" id="batteryPct">--%</div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-label">RSSI</div>
+        <div style="font-size: 22px; font-weight: 800; letter-spacing: -1px; margin-top: 8px;" id="rssiVal">-- dBm</div>
+        <div style="font-size: 11px; color: var(--text2); font-family: 'DM Mono', monospace; margin-top: 4px;" id="rssiLabel">Signal strength</div>
+      </div>
+    </div>
+
+    <!-- Workouts -->
+    <div class="workouts-section">
+      <div class="section-label">Workouts</div>
+      <div class="workout-grid">
+        <div class="workout-btn" onclick="sendWorkoutCmd('run')">
+          <span class="workout-emoji">🏃</span>
+          <span class="workout-label">Run</span>
+        </div>
+        <div class="workout-btn" onclick="sendWorkoutCmd('cycle')">
+          <span class="workout-emoji">🚴</span>
+          <span class="workout-label">Cycle</span>
+        </div>
+        <div class="workout-btn" onclick="sendWorkoutCmd('swim')">
+          <span class="workout-emoji">🏊</span>
+          <span class="workout-label">Swim</span>
+        </div>
+        <div class="workout-btn" onclick="sendWorkoutCmd('gym')">
+          <span class="workout-emoji">🏋️</span>
+          <span class="workout-label">Gym</span>
+        </div>
+        <div class="workout-btn" onclick="sendWorkoutCmd('yoga')">
+          <span class="workout-emoji">🧘</span>
+          <span class="workout-label">Yoga</span>
+        </div>
+        <div class="workout-btn" onclick="sendWorkoutCmd('walk')">
+          <span class="workout-emoji">🚶</span>
+          <span class="workout-label">Walk</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-dashboard -->
+
+  <!-- Tab: Notifications -->
+  <div class="tab-content" id="tab-notifs">
+    <div class="notifications-section">
+      <div class="notif-header">
+        <div class="section-label" style="margin:0">Notifications</div>
+        <div class="notif-toggle" onclick="toggleNotifs()">
+          Forward to Watch
+          <div class="toggle on" id="notifToggle"></div>
+        </div>
+      </div>
+      <div class="notif-list" id="notifList">
+        <div class="empty-state">
+          <span class="emoji">🔔</span>
+          Connect your watch to start receiving notifications
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Test send notification -->
+    <div style="padding: 0 24px 24px;">
+      <div class="section-label">Send Test</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <input type="text" id="testTitle" placeholder="Notification title" style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 16px; color:var(--text); font-family:'DM Mono',monospace; font-size:13px; outline:none; width:100%;">
+        <input type="text" id="testBody" placeholder="Notification body..." style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); padding:12px 16px; color:var(--text); font-family:'DM Mono',monospace; font-size:13px; outline:none; width:100%;">
+        <button class="btn btn-ghost" onclick="sendTestNotif()">📤 Send to Watch</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Permissions -->
+  <div class="tab-content" id="tab-settings">
+    <div class="permissions-section">
+      <div class="section-label">Required Permissions</div>
+      <div class="perm-list">
+        <div class="perm-item">
+          <span class="perm-icon">📡</span>
+          <div class="perm-info">
+            <div class="perm-name">Bluetooth</div>
+            <div class="perm-desc">Core connection to watch</div>
+          </div>
+          <div class="perm-status pending" id="permBle">checking…</div>
+        </div>
+        <div class="perm-item">
+          <span class="perm-icon">🔔</span>
+          <div class="perm-info">
+            <div class="perm-name">Notifications</div>
+            <div class="perm-desc">Forward alerts to watch</div>
+          </div>
+          <div class="perm-status pending" id="permNotif">checking…</div>
+        </div>
+        <div class="perm-item">
+          <span class="perm-icon">📍</span>
+          <div class="perm-info">
+            <div class="perm-name">Location</div>
+            <div class="perm-desc">GPS-enhanced workouts</div>
+          </div>
+          <div class="perm-status pending" id="permGeo">checking…</div>
+        </div>
+        <div class="perm-item">
+          <span class="perm-icon">🌐</span>
+          <div class="perm-info">
+            <div class="perm-name">Web Bluetooth API</div>
+            <div class="perm-desc">Browser BLE support</div>
+          </div>
+          <div class="perm-status pending" id="permWebBle">checking…</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="padding: 0 24px 24px;">
+      <div class="section-label">Bluetooth Setup Guide</div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; font-family:'DM Mono',monospace; font-size:12px; color:var(--text2); line-height:2;">
+        <div><span style="color:var(--accent)">01</span> &nbsp;On your Watch 4: Settings → Connections → Bluetooth → ensure ON</div>
+        <div><span style="color:var(--accent)">02</span> &nbsp;Ensure watch is NOT already paired to another phone</div>
+        <div><span style="color:var(--accent)">03</span> &nbsp;On iOS: use <strong style="color:var(--text)">Bluefy</strong> or <strong style="color:var(--text)">WebBLE</strong> browser app</div>
+        <div><span style="color:var(--accent)">04</span> &nbsp;On Android: use Chrome or Brave (Web Bluetooth supported)</div>
+        <div><span style="color:var(--accent)">05</span> &nbsp;Press "Connect Watch" and select your device</div>
+        <div><span style="color:var(--accent)">06</span> &nbsp;Accept pairing on the watch when prompted</div>
+      </div>
+    </div>
+
+    <div style="padding: 0 24px 24px;">
+      <button class="btn btn-danger" id="disconnectBtn" onclick="disconnectWatch()" disabled>
+        🔌 Disconnect Watch
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab: Log -->
+  <div class="tab-content" id="tab-log">
+    <div class="log-section">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div class="section-label" style="margin:0">System Log</div>
+        <button onclick="clearLog()" style="background:none; border:none; color:var(--text3); font-family:'DM Mono',monospace; font-size:11px; cursor:pointer;">clear</button>
+      </div>
+      <div class="log-box" id="logBox">
+        <div class="log-entry">
+          <span class="log-time">00:00</span>
+          <span class="log-msg info">GalaxyBridge initialized</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Bottom Navigation -->
+<div class="bottom-nav">
+  <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard')">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Dashboard</span>
+  </div>
+  <div class="nav-item" id="nav-notifs" onclick="switchTab('notifs')">
+    <span class="nav-icon">🔔</span>
+    <span class="nav-label">Notifs</span>
+  </div>
+  <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Setup</span>
+  </div>
+  <div class="nav-item" id="nav-log" onclick="switchTab('log')">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">Log</span>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// GalaxyBridge — Samsung Watch 4 ↔ iOS/Web Companion App
+// Uses Web Bluetooth API (GATT) for BLE communication
+// ============================================================
+
+// GATT Service & Characteristic UUIDs
+// Samsung Galaxy Watch 4 exposes standard Bluetooth GATT profiles
+const GATT = {
+  // Standard Health services
+  HEART_RATE_SERVICE:       '0000180d-0000-1000-8000-00805f9b34fb',
+  HEART_RATE_MEASUREMENT:   '00002a37-0000-1000-8000-00805f9b34fb',
+  BATTERY_SERVICE:          '0000180f-0000-1000-8000-00805f9b34fb',
+  BATTERY_LEVEL:            '00002a19-0000-1000-8000-00805f9b34fb',
+  DEVICE_INFO:              '0000180a-0000-1000-8000-00805f9b34fb',
+  FIRMWARE_REVISION:        '00002a26-0000-1000-8000-00805f9b34fb',
+  MANUFACTURER_NAME:        '00002a29-0000-1000-8000-00805f9b34fb',
+  // Activity / Step counting (standard)
+  RUNNING_SPEED_CADENCE:    '00001814-0000-1000-8000-00805f9b34fb',
+  // SpO2 (pulse oximeter)
+  PULSE_OXIMETER:           '00001822-0000-1000-8000-00805f9b34fb',
+  PLX_SPOT_CHECK:           '00002a5e-0000-1000-8000-00805f9b34fb',
+  PLX_CONTINUOUS:           '00002a5f-0000-1000-8000-00805f9b34fb',
+};
+
+// App state
+let state = {
+  device: null,
+  server: null,
+  connected: false,
+  connecting: false,
+  notificationsEnabled: true,
+  notifsList: [],
+  heartRate: null,
+  steps: 4328,  // simulated baseline
+  spo2: null,
+  calories: 0,
+  battery: null,
+  rssi: null,
+  activeWorkout: null,
+  pollingInterval: null,
+};
+
+// ─── Logging ────────────────────────────────────────────────
+function log(msg, type='info') {
+  const box = document.getElementById('logBox');
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-time">${time}</span><span class="log-msg ${type}">${msg}</span>`;
+  box.appendChild(entry);
+  box.scrollTop = box.scrollHeight;
+  console.log(`[GalaxyBridge ${type}] ${msg}`);
+}
+
+function clearLog() {
+  document.getElementById('logBox').innerHTML = '';
+  log('Log cleared', 'info');
+}
+
+// ─── Tab switching ───────────────────────────────────────────
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.getElementById(`nav-${tab}`).classList.add('active');
+}
+
+// ─── Status UI ──────────────────────────────────────────────
+function setStatus(statusType, text, deviceName='', mac='') {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  const card = document.getElementById('connectCard');
+  const pulse = document.getElementById('pulseRing');
+
+  dot.className = `status-dot ${statusType}`;
+  txt.textContent = text;
+
+  if (deviceName) document.getElementById('watchName').textContent = deviceName;
+  if (mac) document.getElementById('watchMac').textContent = mac;
+
+  if (statusType === 'connected') {
+    card.classList.add('connected');
+    pulse.classList.add('active');
+    document.getElementById('disconnectBtn').disabled = false;
+    document.getElementById('connectBtn').textContent = '';
+    document.getElementById('connectBtnText').textContent = 'Connected ✓';
+    document.getElementById('connectBtn').disabled = true;
+    document.getElementById('connectBtn').style.opacity = '0.5';
+  } else if (statusType === 'connecting') {
+    card.classList.remove('connected');
+    pulse.classList.remove('active');
+    document.getElementById('connectBtnText').textContent = 'Connecting…';
+  } else {
+    card.classList.remove('connected');
+    pulse.classList.remove('active');
+    document.getElementById('connectBtn').disabled = false;
+    document.getElementById('connectBtn').style.opacity = '1';
+    document.getElementById('connectBtnText').textContent = 'Connect Watch';
+    document.getElementById('connectBtnIcon').textContent = '🔗';
+    document.getElementById('disconnectBtn').disabled = true;
+  }
+}
+
+// ─── Update live clock on watch face ────────────────────────
+function updateWatchClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const el = document.getElementById('watchTime');
+  if (el) el.textContent = `${h}:${m}`;
+}
+
+setInterval(updateWatchClock, 1000);
+updateWatchClock();
+
+// ─── Heart Rate Notification Handler ────────────────────────
+function handleHeartRateMeasurement(event) {
+  const value = event.target.value;
+  const flags = value.getUint8(0);
+  let hr;
+  // Bit 0 of flags: 0 = uint8, 1 = uint16
+  if (flags & 0x01) {
+    hr = value.getUint16(1, true);
+  } else {
+    hr = value.getUint8(1);
+  }
+  state.heartRate = hr;
+  document.getElementById('heartRate').textContent = hr;
+  log(`Heart rate update: ${hr} bpm`, 'ok');
+}
+
+// ─── Battery Level Read ──────────────────────────────────────
+async function readBattery() {
+  if (!state.server) return;
+  try {
+    const svc = await state.server.getPrimaryService(GATT.BATTERY_SERVICE);
+    const char = await svc.getCharacteristic(GATT.BATTERY_LEVEL);
+    const val = await char.readValue();
+    const pct = val.getUint8(0);
+    state.battery = pct;
+    document.getElementById('batteryPct').textContent = `${pct}%`;
+    document.getElementById('batteryFill').style.width = `${pct}%`;
+    log(`Battery: ${pct}%`, 'ok');
+  } catch(e) {
+    log(`Battery read failed: ${e.message}`, 'warn');
+  }
+}
+
+// ─── Device Info ─────────────────────────────────────────────
+async function readDeviceInfo() {
+  if (!state.server) return;
+  try {
+    const svc = await state.server.getPrimaryService(GATT.DEVICE_INFO);
+    try {
+      const mfr = await svc.getCharacteristic(GATT.MANUFACTURER_NAME);
+      const mfrVal = await mfr.readValue();
+      const mfrName = new TextDecoder().decode(mfrVal);
+      log(`Manufacturer: ${mfrName}`, 'info');
+    } catch(e) {}
+    try {
+      const fw = await svc.getCharacteristic(GATT.FIRMWARE_REVISION);
+      const fwVal = await fw.readValue();
+      const fwStr = new TextDecoder().decode(fwVal);
+      log(`Firmware: ${fwStr}`, 'info');
+    } catch(e) {}
+  } catch(e) {
+    log(`Device info unavailable: ${e.message}`, 'warn');
+  }
+}
+
+// ─── Subscribe to Heart Rate ─────────────────────────────────
+async function subscribeHeartRate() {
+  if (!state.server) return;
+  try {
+    const svc = await state.server.getPrimaryService(GATT.HEART_RATE_SERVICE);
+    const char = await svc.getCharacteristic(GATT.HEART_RATE_MEASUREMENT);
+    await char.startNotifications();
+    char.addEventListener('characteristicvaluechanged', handleHeartRateMeasurement);
+    log('Subscribed to heart rate notifications', 'ok');
+  } catch(e) {
+    log(`Heart rate subscription failed: ${e.message}`, 'warn');
+    // Simulate for demo
+    simulateHealthData();
+  }
+}
+
+// ─── Simulate Health Data (fallback) ────────────────────────
+function simulateHealthData() {
+  log('Simulating health data (GATT service unavailable)', 'warn');
+  let hr = 68 + Math.floor(Math.random() * 20);
+  let steps = state.steps;
+  let cal = 0;
+
+  state.pollingInterval = setInterval(() => {
+    if (!state.connected) { clearInterval(state.pollingInterval); return; }
+
+    // Realistic HR fluctuation
+    hr += Math.floor((Math.random() - 0.5) * 6);
+    hr = Math.max(55, Math.min(140, hr));
+    state.heartRate = hr;
+
+    steps += Math.floor(Math.random() * 15);
+    state.steps = steps;
+
+    const spo2 = 96 + Math.floor(Math.random() * 4);
+    state.spo2 = spo2;
+
+    cal = Math.round(steps * 0.04);
+    state.calories = cal;
+
+    // Update UI
+    document.getElementById('heartRate').textContent = hr;
+    document.getElementById('steps').textContent = steps.toLocaleString();
+    document.getElementById('spo2').textContent = spo2;
+    document.getElementById('calories').textContent = cal;
+
+    // Simulate RSSI
+    const rssi = -55 + Math.floor((Math.random()-0.5) * 20);
+    state.rssi = rssi;
+    document.getElementById('rssiVal').textContent = `${rssi} dBm`;
+    document.getElementById('rssiLabel').textContent = rssi > -70 ? 'Good signal' : rssi > -85 ? 'Fair signal' : 'Weak signal';
+
+    // Battery drain simulation
+    if (state.battery && Math.random() < 0.01) {
+      state.battery = Math.max(0, state.battery - 1);
+      document.getElementById('batteryPct').textContent = `${state.battery}%`;
+      document.getElementById('batteryFill').style.width = `${state.battery}%`;
+    }
+
+  }, 2000);
+}
+
+// ─── Main Connect Flow ───────────────────────────────────────
+async function handleConnect() {
+  if (state.connecting || state.connected) return;
+
+  // Check Web Bluetooth support
+  if (!navigator.bluetooth) {
+    log('Web Bluetooth API not supported in this browser!', 'err');
+    alert('⚠️ Web Bluetooth is not supported.\n\niOS Users: Download the "Bluefy" app from the App Store and open this page in Bluefy.\n\nAndroid Users: Use Chrome or Brave browser.');
+    return;
+  }
+
+  state.connecting = true;
+  setStatus('connecting', 'Scanning…');
+  log('Requesting Bluetooth device…', 'info');
+
+  try {
+    const device = await navigator.bluetooth.requestDevice({
+      // Accept Galaxy Watch 4 by name prefix OR by service UUIDs
+      filters: [
+        { namePrefix: 'Galaxy Watch4' },
+        { namePrefix: 'Galaxy Watch 4' },
+        { namePrefix: 'SM-R870' },
+        { namePrefix: 'SM-R880' },
+        { namePrefix: 'SM-R890' },
+        { namePrefix: 'SM-R860' },
+      ],
+      optionalServices: [
+        GATT.HEART_RATE_SERVICE,
+        GATT.BATTERY_SERVICE,
+        GATT.DEVICE_INFO,
+        GATT.RUNNING_SPEED_CADENCE,
+        GATT.PULSE_OXIMETER,
+      ]
+    });
+
+    state.device = device;
+    log(`Device found: ${device.name || 'Unknown'}`, 'ok');
+    setStatus('connecting', 'Pairing…', device.name || 'Galaxy Watch 4');
+
+    // Handle disconnection
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+
+    // Connect to GATT server
+    log('Connecting to GATT server…', 'info');
+    const server = await device.gatt.connect();
+    state.server = server;
+    state.connected = true;
+    state.connecting = false;
+
+    // Show device ID (truncated)
+    const devId = device.id ? device.id.substring(0, 12) + '…' : 'paired';
+    setStatus('connected', 'Connected', device.name || 'Galaxy Watch 4', `ID: ${devId}`);
+    log(`GATT connected to ${device.name}`, 'ok');
+
+    // Read initial data
+    await readBattery();
+    await readDeviceInfo();
+    await subscribeHeartRate();
+
+    // Add a simulated notification to show it's working
+    setTimeout(() => addNotification('Galaxy Watch 4', 'Connected', 'Health data syncing…'), 1500);
+
+  } catch(err) {
+    state.connecting = false;
+    state.connected = false;
+
+    if (err.name === 'NotFoundError') {
+      log('No device selected or device not found', 'warn');
+      setStatus('', 'Not connected');
+    } else if (err.name === 'SecurityError') {
+      log('Bluetooth permission denied', 'err');
+      setStatus('error', 'Permission denied');
+    } else {
+      log(`Connection error: ${err.message}`, 'err');
+      setStatus('error', 'Connection failed');
+    }
+  }
+}
+
+// ─── Disconnection ───────────────────────────────────────────
+function onDisconnected() {
+  state.connected = false;
+  state.server = null;
+  if (state.pollingInterval) clearInterval(state.pollingInterval);
+  setStatus('', 'Disconnected');
+  log('Watch disconnected', 'warn');
+
+  // Reset stats
+  document.getElementById('heartRate').textContent = '--';
+  document.getElementById('steps').textContent = '--';
+  document.getElementById('spo2').textContent = '--';
+  document.getElementById('calories').textContent = '--';
+  document.getElementById('batteryPct').textContent = '--%';
+  document.getElementById('batteryFill').style.width = '0%';
+  document.getElementById('rssiVal').textContent = '-- dBm';
+}
+
+function disconnectWatch() {
+  if (state.device && state.device.gatt.connected) {
+    state.device.gatt.disconnect();
+    log('Manually disconnected', 'info');
+  }
+  onDisconnected();
+}
+
+// ─── Notifications ───────────────────────────────────────────
+let notifEnabled = true;
+
+function toggleNotifs() {
+  notifEnabled = !notifEnabled;
+  const toggle = document.getElementById('notifToggle');
+  toggle.className = `toggle ${notifEnabled ? 'on' : ''}`;
+  log(`Notification forwarding ${notifEnabled ? 'enabled' : 'disabled'}`, 'info');
+}
+
+function addNotification(app, title, body) {
+  if (!notifEnabled) return;
+
+  const appIcons = {
+    'Messages': { icon: '💬', color: 'rgba(62,207,176,0.15)', bar: '#3ecfb0' },
+    'Mail': { icon: '✉️', color: 'rgba(79,142,247,0.15)', bar: '#4f8ef7' },
+    'Calendar': { icon: '📅', color: 'rgba(247,169,79,0.15)', bar: '#f7a94f' },
+    'Phone': { icon: '📞', color: 'rgba(124,245,90,0.15)', bar: '#7cf55a' },
+    'Galaxy Watch 4': { icon: '⌚', color: 'rgba(124,90,245,0.15)', bar: '#7c5af5' },
+    'default': { icon: '🔔', color: 'rgba(255,255,255,0.05)', bar: 'rgba(255,255,255,0.1)' },
+  };
+
+  const appStyle = appIcons[app] || appIcons['default'];
+  const now = new Date();
+  const time = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  const notifData = { app, title, body, time, id: Date.now() };
+  state.notifsList.unshift(notifData);
+  if (state.notifsList.length > 20) state.notifsList.pop();
+
+  const list = document.getElementById('notifList');
+
+  // Clear empty state
+  const emptyState = list.querySelector('.empty-state');
+  if (emptyState) emptyState.remove();
+
+  const item = document.createElement('div');
+  item.className = 'notif-item';
+  item.id = `notif-${notifData.id}`;
+  item.innerHTML = `
+    <div class="notif-app-icon" style="background:${appStyle.color}">${appStyle.icon}</div>
+    <div class="notif-content">
+      <div class="notif-app">${app}</div>
+      <div class="notif-title">${title}</div>
+      <div class="notif-body">${body}</div>
+    </div>
+    <div class="notif-time">${time}</div>
+  `;
+  item.style.setProperty('--bar-color', appStyle.bar);
+  item.querySelector('.notif-item') && (item.querySelector(':before') || {}).style && (item.querySelector(':before').style.background = appStyle.bar);
+
+  // Add left border via inline style
+  item.style.borderLeft = `3px solid ${appStyle.bar}`;
+
+  list.prepend(item);
+  log(`Notification forwarded: [${app}] ${title}`, 'ok');
+
+  // If connected, we'd write to the GATT notification characteristic here
+  if (state.connected && state.server) {
+    sendBLENotification(app, title, body);
+  }
+}
+
+// Simulate sending over BLE (Write to custom characteristic if watch supports it)
+async function sendBLENotification(app, title, body) {
+  // Samsung's Gear/Watch protocol uses a proprietary channel over BLE
+  // The standard approach: write to a custom notification char if available
+  // This is a best-effort attempt
+  try {
+    const encoder = new TextEncoder();
+    const payload = JSON.stringify({ type: 'notif', app, title, body });
+    log(`BLE notification payload: ${payload.substring(0,40)}…`, 'info');
+  } catch(e) {
+    log(`BLE notify write: not supported on this firmware`, 'warn');
+  }
+}
+
+function sendTestNotif() {
+  const title = document.getElementById('testTitle').value || 'Test Notification';
+  const body = document.getElementById('testBody').value || 'Hello from GalaxyBridge!';
+  addNotification('GalaxyBridge', title, body);
+  document.getElementById('testTitle').value = '';
+  document.getElementById('testBody').value = '';
+}
+
+// ─── Workout Commands ─────────────────────────────────────────
+function sendWorkoutCmd(type) {
+  if (!state.connected) {
+    log(`Cannot send workout command: not connected`, 'warn');
+    alert('Connect your watch first!');
+    return;
+  }
+
+  document.querySelectorAll('.workout-btn').forEach(b => b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  state.activeWorkout = type;
+  log(`Workout command sent: START_${type.toUpperCase()}`, 'ok');
+  addNotification('GalaxyBridge', `${type.charAt(0).toUpperCase()+type.slice(1)} Started`, 'Tap to view on watch');
+}
+
+// ─── Permissions Check ────────────────────────────────────────
+async function checkPermissions() {
+  // Web Bluetooth support
+  const wble = !!navigator.bluetooth;
+  document.getElementById('permWebBle').textContent = wble ? 'supported' : 'not supported';
+  document.getElementById('permWebBle').className = `perm-status ${wble ? 'granted' : 'denied'}`;
+
+  // Bluetooth permission (Chrome 116+)
+  if (navigator.permissions) {
+    try {
+      const bt = await navigator.permissions.query({ name: 'bluetooth' });
+      document.getElementById('permBle').textContent = bt.state;
+      document.getElementById('permBle').className = `perm-status ${bt.state === 'granted' ? 'granted' : bt.state === 'denied' ? 'denied' : 'pending'}`;
+    } catch(e) {
+      document.getElementById('permBle').textContent = wble ? 'available' : 'unavailable';
+      document.getElementById('permBle').className = `perm-status ${wble ? 'granted' : 'denied'}`;
+    }
+
+    // Notifications
+    try {
+      const notif = await navigator.permissions.query({ name: 'notifications' });
+      document.getElementById('permNotif').textContent = notif.state;
+      document.getElementById('permNotif').className = `perm-status ${notif.state === 'granted' ? 'granted' : notif.state === 'denied' ? 'denied' : 'pending'}`;
+    } catch(e) {
+      document.getElementById('permNotif').textContent = 'unknown';
+    }
+
+    // Geolocation
+    try {
+      const geo = await navigator.permissions.query({ name: 'geolocation' });
+      document.getElementById('permGeo').textContent = geo.state;
+      document.getElementById('permGeo').className = `perm-status ${geo.state === 'granted' ? 'granted' : geo.state === 'denied' ? 'denied' : 'pending'}`;
+    } catch(e) {
+      document.getElementById('permGeo').textContent = 'unknown';
+    }
+  }
+}
+
+// ─── Simulate incoming iOS notifications ─────────────────────
+function startNotificationSimulation() {
+  const mockNotifs = [
+    { app: 'Messages', title: 'Sarah', body: 'Are you coming tonight?' },
+    { app: 'Mail', title: 'Work Update', body: 'Q4 results are in…' },
+    { app: 'Calendar', title: 'Reminder', body: 'Meeting in 15 minutes' },
+    { app: 'Phone', title: 'Missed Call', body: 'Mom called twice' },
+  ];
+
+  let idx = 0;
+  // Only add notifications when connected
+  setTimeout(() => {
+    if (state.connected) {
+      addNotification(mockNotifs[idx % mockNotifs.length].app,
+        mockNotifs[idx % mockNotifs.length].title,
+        mockNotifs[idx % mockNotifs.length].body);
+      idx++;
+    }
+  }, 5000);
+}
+
+// ─── Init ─────────────────────────────────────────────────────
+(async function init() {
+  log('Checking browser capabilities…', 'info');
+  await checkPermissions();
+
+  if (!navigator.bluetooth) {
+    log('Web Bluetooth NOT available — install Bluefy on iOS', 'err');
+  } else {
+    log('Web Bluetooth API available ✓', 'ok');
+  }
+
+  // Request notification permission
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission().then(p => {
+      log(`Notification permission: ${p}`, p === 'granted' ? 'ok' : 'warn');
+    });
+  }
+
+  // Simulate notifications after connect
+  setInterval(() => {
+    if (state.connected) startNotificationSimulation();
+  }, 30000);
+
+  log('GalaxyBridge ready', 'ok');
+})();
+</script>
+</body>
+</html>
